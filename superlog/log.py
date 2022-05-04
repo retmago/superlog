@@ -75,31 +75,3 @@ class SuperLog:
             #print("mensaje:{} - duracion: {} - funcion: {}\n".format(message, self.time - time.time(), inspect.stack()[1].function))
             self.time = time.time()
 
-
-l = SuperLog("Prueba")
-
-@l.time_analyze
-def main():
-    time.sleep(1)
-
-    try:
-        dasda
-    except:
-        l.print("prueba")
-
-    time.sleep(1)
-
-    l.print("inicio")
-
-    try:
-        raise Exception("Error 202")
-    except:
-        l.print("error 2")
-
-    l.print("inicio 2")
-
-
-if __name__ == '__main__':
-    main()
-
-    #print('{"message": %s, "time": %s, "funtion": "%s"}' % (1,2,3))
