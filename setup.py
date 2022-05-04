@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name='superlog',
     packages=['superlog'],
-    version='0.3',
+    version='0.4',
     license='LGPL v3',  # La licencia que tenga tu paquete
     description='Libreria para mostrar mayor cantidad de informacion en los logs de manera facil',
     author='jsilva95',

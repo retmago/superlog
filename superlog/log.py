@@ -38,8 +38,8 @@ class SuperLog:
 
         message = '''{"message":"%s","execution":%s,"file":"%s","line": "%s","function":"%s","statement":"%s","error":"%s","text":"%s"}''' % ( message
                                                             , execution
-                                                            , inspect.trace()[i][1]
-                                                            ,inspect.trace()[i][2]
+                                                            , inspect.trace()[i][1].replace('\\','\\\\')
+                                                            , inspect.trace()[i][2]
                                                             , inspect.trace()[i][3]
                                                             , str(inspect.trace()[i][4]).replace('"','\'').replace("    ","")
                                                             , str(sys.exc_info()[0]).replace('"','\'')
