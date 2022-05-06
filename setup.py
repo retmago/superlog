@@ -1,13 +1,18 @@
 from setuptools import setup
 
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
+
 setup(
     name='superlog',
     packages=['superlog'],
-    version='0.4',
+    version='0.5',
     license='LGPL v3',  # La licencia que tenga tu paquete
     description='Libreria para mostrar mayor cantidad de informacion en los logs de manera facil',
     author='jsilva95',
     author_email='jsilva2018.95@gmail.com',
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     url='https://github.com/retmago/superlog.git',  # Usa la URL del repositorio de GitHub
     #download_url='https://github.com/retmago/superlog/archive/refs/heads/main.zip',
     # Te lo explico a continuación

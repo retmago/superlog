@@ -23,10 +23,14 @@ class SuperLog:
         self.time = time.time()
         self.traceback = 0
         self.start_time = time.time()
-        self.logger =  self.getLogger(app_name)
+        self.logger =  self.__getLogger(app_name)
 
-    def getLogger(self, name: str) -> JSONLogger:
-
+    def __getLogger(self, name: str) -> JSONLogger:
+        """
+            Function que inicializa el logger
+        :param name:
+        :return:
+        """
         logging.basicConfig(format=self._FORMAT)
         manager = logging.Manager(JSONLogger.root)
         manager.setLoggerClass(JSONLogger)
@@ -34,9 +38,16 @@ class SuperLog:
         logger.setLevel("INFO")
         return logger
 
-    def exception_error(self,message, execution, i=0):
+    def __exception_error(self,message, execution, i=0):
+        """
+            Metodo que genera el json con la informacion proveniente del trace de errores
+        :param message:
+        :param execution:
+        :param i:
+        :return:
+        """
 
-        message = '''{"message":"%s","execution":%s,"file":"%s","line": "%s","function":"%s","statement":"%s","error":"%s","text":"%s"}''' % ( message
+        message = '''{"message":"%s","execution":%s,"file":"%s","line": "%s","function":"%s","statement":"%s","error":"%s","text":"%s","manual": false}''' % ( message
                                                             , execution
                                                             , inspect.trace()[i][1].replace('\\','\\\\')
                                                             , inspect.trace()[i][2]
@@ -48,19 +59,48 @@ class SuperLog:
 
         return message
 
+    def time_func_analyze(self, total_execution=False, *args, **kwargs):
+        """
+            Metodo decorador que permite calcular el tiempo total de una funcion
+        :param total_execution:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        def decorator(function):
+            def func(*args, **kwargs):
+                inicio = time.time()
+                result = function(*args, **kwargs)
+                if total_execution:
+                    message = '{"total_execution":%s}' % (round(time.time() - inicio, 2))
+                else:
+                    message = '{"total":%s, "function": "%s"}' % (round(time.time() - inicio, 2), function.__name__)
+                self.logger.info(json.loads(message))
+                return result
+            return  func
+        return decorator
 
-    def time_analyze(self, funcion):
-        def callf(*args, **kwargs):
-            inicio = time.time()
-            c = funcion(*args, **kwargs)
-            message = '{"total_execution":%s}' % (round(time.time() - inicio,2))
-            self.logger.info(json.loads(message))
-            return c
 
-        return callf
-
+    def error(self, message):
+        """
+            Funcion que imprime un error, en caso de no usar try y except se recomienda usar esta funcion
+            para imprimir los errores
+        :param message:
+        :return:
+        """
+        function = inspect.stack()[1].function
+        execution = round(time.time() - self.time, 2)
+        to_send = '{"message":"%s", "execution":%s, "function":"%s", "manual": true}' % (message, execution, function)
+        self.logger.error(json.loads(to_send))
+        self.time = time.time()
 
     def print(self, message):
+        """
+            Funcion que imprime informacion adicional de un proceso, adicionalmente reconoce automaticamente un error despues de un try: except:
+            imprimiendo el error en el codigo
+        :param message:
+        :return:
+        """
         function = inspect.stack()[1].function
         execution = round(time.time() - self.time,2)
         message = message
@@ -68,10 +108,25 @@ class SuperLog:
 
         if len(inspect.trace()) != 0:
 
-            self.logger.error(json.loads(self.exception_error(message, execution)))
+            self.logger.error(json.loads(self.__exception_error(message, execution)))
         else:
             to_send = '{"message":"%s", "execution":%s, "function":"%s"}' % (message, execution, function)
             self.logger.info(json.loads(to_send))
-            #print("mensaje:{} - duracion: {} - funcion: {}\n".format(message, self.time - time.time(), inspect.stack()[1].function))
             self.time = time.time()
+
+
+
+
+
+if __name__ == '__main__':
+    log = SuperLog(app_name='my_app')
+
+
+
+
+    @log.time_func_analyze(total_execution=True)
+    def main():
+        log.error("Hola mundo error")
+
+    main()
 
