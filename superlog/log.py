@@ -31,7 +31,6 @@ class CustomFormatter(logging.Formatter):
         formatter = logging.Formatter(log_fmt)
         return formatter.format(record)
 
-
 class JSONSuperLogger(Logger):
     def _log(self, level, msg, *args, **kwargs):
         """
@@ -50,23 +49,26 @@ class SuperLog:
         self.start_time = time.time()
         self.logger =  self.__getLogger(app_name)
 
-    def __getLogger(self, name: str) -> JSONSuperLogger:
+
+    def __getLogger(self, name: str):
         """
             Function que inicializa el logger
         :param name:
         :return:
         """
+
         logger = logging.getLogger(name)
         logger.setLevel(logging.INFO)
 
-        # Create stdout handler for logging to the console (logs all five levels)
+            # Create stdout handler for logging to the console (logs all five levels)
         stdout_handler = logging.StreamHandler()
         stdout_handler.setLevel(logging.INFO)
         stdout_handler.setFormatter(CustomFormatter(self._FORMAT))
-
         logger.addHandler(stdout_handler)
-        manager = logging.Manager(JSONSuperLogger.root)
-        manager.setLoggerClass(JSONSuperLogger)
+        logger.propagate = False
+
+        #manager = logging.Manager(JSONSuperLogger.root)
+        #manager.setLoggerClass(JSONSuperLogger)
 
         return logger
 
@@ -170,16 +172,4 @@ class SuperLog:
             self.logger.info(json.loads(to_send))
             self.time = time.time()
 
-
-if __name__ == '__main__':
-    log = SuperLog(app_name='my_app')
-
-    log.warning("esto es un waring")
-    log.info("esto es un info")
-
-
-    @log.time_func_analyze(total_execution=True)
-    def main():
-        log.error("esto es un error")
-    main()
 
