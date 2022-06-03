@@ -71,3 +71,28 @@
     {"level":"ERROR","timestamp":"2022-05-06 13:40:50,094","app":"my_app","log":{"message": "Hola mundo error", "execution": 0.01, "function": "main", "manual": true}}
 
 
+
+### Manejo de warnings manuales:
+ 
+    def main():
+        log.warning("Hola mundo warning")
+
+    main()
+    
+    ## ejemplo de salida
+    {"level":"WARNING","timestamp":"2022-05-06 13:40:50,094","app":"my_app","log":{"message": "Hola mundo warning", "execution": 0.01, "function": "main", "manual": true}}
+
+
+
+
+### Manejo de info manuales:
+ 
+    def main():
+        log.info("Hola mundo info")
+
+    main()
+    
+    ## ejemplo de salida
+    {"level":"INFO","timestamp":"2022-05-06 13:40:50,094","app":"my_app","log":{"message": "Hola mundo info", "execution": 0.01, "function": "main", "manual": true}}
+
+
