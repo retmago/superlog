@@ -5,9 +5,34 @@ import time
 import json
 import sys
 
+class CustomFormatter(logging.Formatter):
+    """Logging colored formatter, adapted from https://stackoverflow.com/a/56944256/3638629"""
+
+    grey = '\x1b[38;21m'
+    blue = '\x1b[38;5;39m'
+    yellow = '\x1b[38;5;226m'
+    red = '\x1b[38;5;196m'
+    bold_red = '\x1b[31;1m'
+    reset = '\x1b[0m'
+
+    def __init__(self, fmt):
+        super().__init__()
+        self.fmt = fmt
+        self.FORMATS = {
+            logging.DEBUG: self.grey + self.fmt + self.reset,
+            logging.INFO: self.blue + self.fmt + self.reset,
+            logging.WARNING: self.yellow + self.fmt + self.reset,
+            logging.ERROR: self.red + self.fmt + self.reset,
+            logging.CRITICAL: self.bold_red + self.fmt + self.reset
+        }
+
+    def format(self, record):
+        log_fmt = self.FORMATS.get(record.levelno)
+        formatter = logging.Formatter(log_fmt)
+        return formatter.format(record)
 
 
-class JSONLogger(Logger):
+class JSONSuperLogger(Logger):
     def _log(self, level, msg, *args, **kwargs):
         """
         Low-level logging routine which creates a LogRecord and then calls
@@ -25,17 +50,24 @@ class SuperLog:
         self.start_time = time.time()
         self.logger =  self.__getLogger(app_name)
 
-    def __getLogger(self, name: str) -> JSONLogger:
+    def __getLogger(self, name: str) -> JSONSuperLogger:
         """
             Function que inicializa el logger
         :param name:
         :return:
         """
-        logging.basicConfig(format=self._FORMAT)
-        manager = logging.Manager(JSONLogger.root)
-        manager.setLoggerClass(JSONLogger)
-        logger = manager.getLogger(name)
-        logger.setLevel("INFO")
+        logger = logging.getLogger(name)
+        logger.setLevel(logging.INFO)
+
+        # Create stdout handler for logging to the console (logs all five levels)
+        stdout_handler = logging.StreamHandler()
+        stdout_handler.setLevel(logging.INFO)
+        stdout_handler.setFormatter(CustomFormatter(self._FORMAT))
+
+        logger.addHandler(stdout_handler)
+        manager = logging.Manager(JSONSuperLogger.root)
+        manager.setLoggerClass(JSONSuperLogger)
+
         return logger
 
     def __exception_error(self,message, execution, i=0):
@@ -80,7 +112,6 @@ class SuperLog:
             return  func
         return decorator
 
-
     def error(self, message):
         """
             Funcion que imprime un error, en caso de no usar try y except se recomienda usar esta funcion
@@ -92,6 +123,32 @@ class SuperLog:
         execution = round(time.time() - self.time, 2)
         to_send = '{"message":"%s", "execution":%s, "function":"%s", "manual": true}' % (message, execution, function)
         self.logger.error(json.loads(to_send))
+        self.time = time.time()
+
+    def info(self, message):
+        """
+            Funcion que imprime un error, en caso de no usar try y except se recomienda usar esta funcion
+            para imprimir los errores
+        :param message:
+        :return:
+        """
+        function = inspect.stack()[1].function
+        execution = round(time.time() - self.time, 2)
+        to_send = '{"message":"%s", "execution":%s, "function":"%s", "manual": true}' % (message, execution, function)
+        self.logger.info(json.loads(to_send))
+        self.time = time.time()
+
+    def warning(self, message):
+        """
+            Funcion que imprime un error, en caso de no usar try y except se recomienda usar esta funcion
+            para imprimir los errores
+        :param message:
+        :return:
+        """
+        function = inspect.stack()[1].function
+        execution = round(time.time() - self.time, 2)
+        to_send = '{"message":"%s", "execution":%s, "function":"%s", "manual": true}' % (message, execution, function)
+        self.logger.warning(json.loads(to_send))
         self.time = time.time()
 
     def print(self, message):
@@ -107,7 +164,6 @@ class SuperLog:
 
 
         if len(inspect.trace()) != 0:
-
             self.logger.error(json.loads(self.__exception_error(message, execution)))
         else:
             to_send = '{"message":"%s", "execution":%s, "function":"%s"}' % (message, execution, function)
@@ -115,18 +171,15 @@ class SuperLog:
             self.time = time.time()
 
 
-
-
-
 if __name__ == '__main__':
     log = SuperLog(app_name='my_app')
 
-
+    log.warning("esto es un waring")
+    log.info("esto es un info")
 
 
     @log.time_func_analyze(total_execution=True)
     def main():
-        log.error("Hola mundo error")
-
+        log.error("esto es un error")
     main()
 

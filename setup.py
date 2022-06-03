@@ -6,7 +6,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 setup(
     name='superlog',
     packages=['superlog'],
-    version='0.5',
+    version='0.6',
     license='LGPL v3',  # La licencia que tenga tu paquete
     description='Libreria para mostrar mayor cantidad de informacion en los logs de manera facil',
     author='jsilva95',
