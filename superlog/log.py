@@ -5,6 +5,7 @@ import time
 import json
 import sys
 
+
 class CustomFormatter(logging.Formatter):
     """Logging colored formatter, adapted from https://stackoverflow.com/a/56944256/3638629"""
 
@@ -42,12 +43,14 @@ class JSONSuperLogger(Logger):
 
 class SuperLog:
 
-    def __init__(self, app_name: str):
+    def __init__(self, app_name: str, colors = False):
         self._FORMAT = '{"level":"%(levelname)s","timestamp":"%(asctime)s","app":"%(name)s","log":%(message)s}'
         self.time = time.time()
         self.traceback = 0
         self.start_time = time.time()
+        self.colors = colors
         self.logger =  self.__getLogger(app_name)
+
 
 
     def __getLogger(self, name: str):
@@ -57,20 +60,22 @@ class SuperLog:
         :return:
         """
 
-        logger = logging.getLogger(name)
+        # logger = logging.getLogger(name)
+        manager = logging.Manager(JSONSuperLogger.root)
+        manager.setLoggerClass(JSONSuperLogger)
+        logger = manager.getLogger(name)
         logger.setLevel(logging.INFO)
-
-            # Create stdout handler for logging to the console (logs all five levels)
+        # Create stdout handler for logging to the console (logs all five levels)
         stdout_handler = logging.StreamHandler()
         stdout_handler.setLevel(logging.INFO)
-        stdout_handler.setFormatter(CustomFormatter(self._FORMAT))
+        if self.colors:
+            stdout_handler.setFormatter(CustomFormatter(self._FORMAT))
+        else:
+            stdout_handler.setFormatter(logging.Formatter(self._FORMAT))
         logger.addHandler(stdout_handler)
         logger.propagate = False
-
-        #manager = logging.Manager(JSONSuperLogger.root)
-        #manager.setLoggerClass(JSONSuperLogger)
-
         return logger
+
 
     def __exception_error(self,message, execution, i=0):
         """
@@ -171,5 +176,4 @@ class SuperLog:
             to_send = '{"message":"%s", "execution":%s, "function":"%s"}' % (message, execution, function)
             self.logger.info(json.loads(to_send))
             self.time = time.time()
-
 
