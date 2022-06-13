@@ -10,6 +10,8 @@
     from superlog.log import SuperLog
 ### Agregar identificador de proyecto e instanciar la clase
     log = SuperLog(app_name="my_app")
+    # si se desea agregar color para las ejecuciones locales puede usar la siguiente opcioón
+    log = SuperLog(app_name="my_app", colors = True)
 ### Metodo decorador - tiempo de ejecucion por funcion:
     @log.time_func_analyze
     def mi_funcion():
