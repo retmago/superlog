@@ -4,6 +4,7 @@ import inspect
 import time
 import json
 import sys
+from json.decoder import JSONDecodeError
 
 
 class CustomFormatter(logging.Formatter):
@@ -126,6 +127,8 @@ class SuperLog:
         :param message:
         :return:
         """
+        message = self._format_message(message)
+        self._validations(message)
         function = inspect.stack()[1].function
         execution = round(time.time() - self.time, 2)
         to_send = '{"message":"%s", "execution":%s, "function":"%s", "manual": true}' % (message, execution, function)
@@ -139,6 +142,8 @@ class SuperLog:
         :param message:
         :return:
         """
+        message = self._format_message(message)
+        self._validations(message)
         function = inspect.stack()[1].function
         execution = round(time.time() - self.time, 2)
         to_send = '{"message":"%s", "execution":%s, "function":"%s", "manual": true}' % (message, execution, function)
@@ -152,11 +157,24 @@ class SuperLog:
         :param message:
         :return:
         """
+        message = self._format_message(message)
+        self._validations(message)
         function = inspect.stack()[1].function
         execution = round(time.time() - self.time, 2)
         to_send = '{"message":"%s", "execution":%s, "function":"%s", "manual": true}' % (message, execution, function)
         self.logger.warning(json.loads(to_send))
         self.time = time.time()
+
+    def _validations(self, message):
+        try:
+            tmp = '{"test": "%s"}' % (message)
+            json.loads(tmp)
+        except JSONDecodeError:
+            raise Exception(f"[SuperLog] [Error transformando el mensaje {message} en JSON]")
+
+    def _format_message(self, message):
+        message = message.replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
+        return message
 
     def print(self, message):
         """
@@ -167,8 +185,9 @@ class SuperLog:
         """
         function = inspect.stack()[1].function
         execution = round(time.time() - self.time,2)
-        message = message
 
+        message = self._format_message(message)
+        self._validations(message)
 
         if len(inspect.trace()) != 0:
             self.logger.error(json.loads(self.__exception_error(message, execution)))
@@ -176,4 +195,3 @@ class SuperLog:
             to_send = '{"message":"%s", "execution":%s, "function":"%s"}' % (message, execution, function)
             self.logger.info(json.loads(to_send))
             self.time = time.time()
-
