@@ -176,6 +176,14 @@ class SuperLog:
         message = str(message).replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
         return message
 
+    def _format_message_dict(self, message):
+        for key in message:
+            if type(message[key]) == dict:
+                message[key] = self._format_message_dict(message[key])
+            else:
+                message[key] = str(message[key]).replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
+        return message
+
     def print(self, message):
         """
             Funcion que imprime informacion adicional de un proceso, adicionalmente reconoce automaticamente un error despues de un try: except:
@@ -189,19 +197,27 @@ class SuperLog:
             to_send = '{"message":"%s", "execution":%s, "function":"%s"}'
             message = self._format_message(message)
             self._validations(message)
+
+            if len(inspect.trace()) != 0:
+                self.logger.error(json.loads(self.__exception_error(message, execution)))
+            else:
+                to_send = to_send % (message, execution, function)
+                self.logger.info(json.loads(to_send))
+                self.time = time.time()
+
+
         elif type(message) == dict:
             to_send = '{"message":%s, "execution":%s, "function":"%s"}'
-            for key in message:
-                message[key] = self._format_message(message[key])
-            self._validations(message)
+
+            message = self._format_message_dict(message)
             message = json.dumps(message)
+            if len(inspect.trace()) != 0:
+                self.logger.error(json.loads(self.__exception_error(message, execution)))
+            else:
+                to_send = to_send % (message, execution, function)
+                self.logger.info(json.loads(to_send))
+                self.time = time.time()
+
         else:
             self.logger('Error')
             raise Exception("datatypes must be [str, dict]")
-        print(message)
-        if len(inspect.trace()) != 0:
-            self.logger.error(json.loads(self.__exception_error(message, execution)))
-        else:
-            to_send = to_send % (message, execution, function)
-            self.logger.info(json.loads(to_send))
-            self.time = time.time()
