@@ -173,7 +173,7 @@ class SuperLog:
             raise Exception(f"[SuperLog] [Error transformando el mensaje {message} en JSON]")
 
     def _format_message(self, message):
-        message = message.replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
+        message = str(message).replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
         return message
 
     def print(self, message):
