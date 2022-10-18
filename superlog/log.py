@@ -52,7 +52,7 @@ class SuperLog:
         if len(kwargs):
             for arg in kwargs:
                 extra_karguments += ',"%s":"%s"' % (arg, kwargs[arg])
-        self._FORMAT = '{"level":"%(levelname)s","thread":%(thread)s,"timestamp":"%(asctime)s","app":"%(name)s","log":%(message)s'+extra_karguments+'}'
+        self._FORMAT = '{"log":{"level":"%(levelname)s","thread":%(thread)s,"timestamp":"%(asctime)s","app":"%(name)s","detail":%(message)s'+extra_karguments+'}}'
         self.time = time.time()
         self.traceback = 0
         self.start_time = time.time()
@@ -233,3 +233,14 @@ class SuperLog:
             self.logger.info(json.loads(to_send))
             self.time = time.time()
 
+
+
+
+if __name__ == '__main__':
+    log = SuperLog(app_name='dsa', debug=True, username="tal", colors=True)
+
+    @log.time_func_analyze(total_execution=True)
+    def prueba():
+        log.print("sape")
+
+    prueba()
