@@ -43,6 +43,17 @@ class JSONSuperLogger(Logger):
         msg = json.dumps(msg)
         super()._log(level, msg, *args, **kwargs)
 
+class SingleLevelFilter(logging.Filter):
+    def __init__(self, passlevel, reject):
+        self.passlevel = passlevel
+        self.reject = reject
+
+    def filter(self, record):
+        if self.reject:
+            return (record.levelno > self.passlevel)
+        else:
+            return (record.levelno <= self.passlevel)
+
 class SuperLog:
 
     def __init__(self, app_name: str, colors = False, debug=False, **kwargs):
@@ -75,15 +86,16 @@ class SuperLog:
         logger.setLevel(self.debug)
 
 
-        # Create stdout handler for logging to the console (logs all five levels)
-        stdout_handler = logging.StreamHandler()
-        stdout_handler.setLevel(self.debug)
-        if self.colors:
-            stdout_handler.setFormatter(CustomFormatter(self._FORMAT))
-        else:
-            stdout_handler.setFormatter(logging.Formatter(self._FORMAT))
-        logger.addHandler(stdout_handler)
-        logger.propagate = False
+        rootLogger = logging.getLogger()
+        h_out = logging.StreamHandler(sys.stdout)
+        f_out = SingleLevelFilter(logging.INFO, False)
+        h_out.addFilter(f_out)
+        rootLogger.addHandler(h_out)
+        h_err = logging.StreamHandler(sys.stderr)
+        f_err = SingleLevelFilter(logging.INFO, True)
+        h_err.addFilter(f_err)
+        rootLogger.addHandler(h_err)
+
         logging.basicConfig(level=self.debug)
         return logger
 
