@@ -96,6 +96,9 @@ class SuperLog:
         h_err.addFilter(f_err)
         rootLogger.addHandler(h_err)
 
+        h_out.setFormatter(logging.Formatter(self._FORMAT))
+        h_err.setFormatter(logging.Formatter(self._FORMAT))
+
         logging.basicConfig(level=self.debug)
         return logger
 
